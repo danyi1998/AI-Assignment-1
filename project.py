@@ -52,7 +52,7 @@ def uniform_cost_search(goal, start):
 
 			queue = sorted(queue)
 			if (count == len(goal)):
-				return answer
+				return [answer, visited] 
 
 		# check for the non visited nodes
 		# which are adjacent to present node
@@ -66,7 +66,7 @@ def uniform_cost_search(goal, start):
 		# mark as visited
 		visited[p[1]] = 1
 
-	return answer
+	return [answer, visited] 
 
 
 # create the graph
@@ -81,10 +81,13 @@ cost = {"1, 2": 2, "1, 4": 5, "2, 7": 1, "4, 2": 5, "4, 7": 6, "4, 5": 2, "3, 2"
 goal = [7]  
 
 # get the answer
-answer = uniform_cost_search(goal, 1)
+returned_data = uniform_cost_search(goal, 1)
+answer = returned_data[0]
+visited_path = returned_data[1] 
 
 # print the answer
 print("Minimum cost from 1 to 7 is = ",answer[0])
+print([key for key in visited_path] + goal)  
 
 print(graph)
 print(cost)
