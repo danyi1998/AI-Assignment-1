@@ -1,93 +1,126 @@
+# this code allows for multiple goal states, but in our assignment we just have one 
+
+import json
+
 def uniform_cost_search(goal, start):
     
-	global graph,cost
-	answer = []
+        global graph,cost
 
-	# create a priority queue
-	queue = []
+        # tree contains child node : parent node
+        tree = {} 
+        
+        answer = []
 
-	# set the answer vector to max value
-	for i in range(len(goal)):
-		answer.append(10**8)
+        # create a priority queue
+        queue = []
 
-	# insert the starting index
-	queue.append([0, start])
+        # set the answer vector to max value
+        for i in range(len(goal)):
+                answer.append(10**8)
 
-	# map to store visited node
-	visited = {}
+        # insert the starting index and parent 
+        queue.append([0, start, 0])
 
-	# count
-	count = 0
+        # map to store visited node
+        visited = {}
 
-	# while the queue is not empty
-	while (len(queue) > 0):
+        # count
+        count = 0
 
-		# get the top element of the
-		queue = sorted(queue)
-		p = queue[-1]
+        # while the queue is not empty
+        while (len(queue) > 0):
 
-		# pop the element
-		del queue[-1]
+                # get the smallest distance in the queue 
+                queue = sorted(queue)
+                p = queue[-1]
 
-		# get the original value
-		p[0] *= -1
+                # delete from queue 
+                del queue[-1]
 
-		# check if the element is part of
-		# the goal list
-		if (p[1] in goal):
+                # get the absolute value of the distance 
+                p[0] *= -1
 
-			# get the position
-			index = goal.index(p[1])
+                # check if the element is in goal 
+                if (p[1] in goal):
 
-			# if a new goal is reached
-			if (answer[index] == 10**8):
-				count += 1
+                        # get the position
+                        index = goal.index(p[1])
 
-			# if the cost is less
-			if (answer[index] > p[0]):
-				answer[index] = p[0]
+                        # if a new goal is reached
+                        if (answer[index] == 10**8):
+                                count += 1
 
-			# pop the element
-			del queue[-1]
+                        # if the cost is less
+                        if (answer[index] > p[0]):
+                                answer[index] = p[0]
 
-			queue = sorted(queue)
-			if (count == len(goal)):
-				return [answer, visited] 
+                        # pop the element
+                        del queue[-1]
 
-		# check for the non visited nodes
-		# which are adjacent to present node
-		if (p[1] not in visited):
-			for i in range(len(graph[str(p[1])])):
+                        queue = sorted(queue)
+                        if (count == len(goal)):
+                                # update tree with child node : parent node 
+                                tree[p[1]] = p[2]
 
-				# value is multiplied by -1 so that
-				# least priority is at the top
-				queue.append( [(p[0] + cost[str(p[1]) + ", " + graph[str(p[1])][i]])* -1, int(graph[str(p[1])][i])])
+                                # return from function
+                                return [answer, tree]
 
-		# mark as visited
-		visited[p[1]] = 1
+                # before expanding, check if the node has been visited/expanded before 
+                if (p[1] not in visited):
+                        # for each neighbour of the current node p[1] 
+                        for i in range(len(graph[str(p[1])])):
 
-	return [answer, visited] 
+                                # value is multiplied by -1 so that least priority is at the top
+                                queue.append( [(p[0] + cost[str(p[1]) + "," + graph[str(p[1])][i]])* -1, int(graph[str(p[1])][i]), p[1]])
+
+                                # put the child node : parent node into tree
+                                tree[p[1]] = p[2] 
+
+                # mark as visited
+                visited[p[1]] = 1
+
+        return [answer, tree]  
 
 
-# create the graph
+# load the graph
+f = open("G.json")
+graph = json.load(f)
+f.close() 
 
-# add edge 
-graph = {"1": ["2", "4"], "2": ["7"], "3": ["2"], "4": ["2", "7", "5"], "5": ["3", "6"], "6": ["3", "7"], "7": ["5"]} 
+# add the distance 
+f = open("Dist.json")
+cost = json.load(f)
+f.close() 
 
-# add the distance  
-cost = {"1, 2": 2, "1, 4": 5, "2, 7": 1, "4, 2": 5, "4, 7": 6, "4, 5": 2, "3, 2": 4, "5, 3": 4, "5, 6": 3, "6, 3": 6, "6, 7": 3, "7, 5": 7}
+# start node
+start_node = 1 
 
 # goal state
-goal = [7]  
+goal = [50]   
 
-# get the answer
-returned_data = uniform_cost_search(goal, 1)
+# call the ucs function 
+returned_data = uniform_cost_search(goal, start_node)
+
+# get the distance 
 answer = returned_data[0]
-visited_path = returned_data[1] 
+
+# get the tree which contains the child node:parent node 
+tree = returned_data[1] 
 
 # print the answer
-print("Minimum cost from 1 to 7 is = ",answer[0])
-print([key for key in visited_path] + goal)  
+print("Minimum cost from " + str(start_node) + " to " + str(goal[0]) + " is = ", answer[0])
 
-print(graph)
-print(cost)
+# solution path
+solution = goal
+
+# while the solution path does not yet contain the start node
+while solution[-1] != start_node:
+        # to solution we append the parent of the last item (node)
+        solution.append(tree[solution[-1]])
+
+# to go from the start node to the goal node 
+solution.reverse()
+
+# print solution path
+print(solution)
+
